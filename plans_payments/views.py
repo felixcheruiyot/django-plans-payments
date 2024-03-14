@@ -40,6 +40,8 @@ def create_payment_object(
         and order.user.userplan.recurring.payment_provider != payment_variant
     ):
         order.user.userplan.recurring.delete()
+    
+    billing_info = order.user.billinginfo
     return Payment.objects.create(
         variant=payment_variant,
         order=order,
@@ -48,15 +50,15 @@ def create_payment_object(
         tax=Decimal(order.tax_total()),
         currency=order.currency,
         delivery=Decimal(0),
-        billing_first_name=order.user.first_name,
-        billing_last_name=order.user.last_name,
-        billing_email=order.user.email or "",
-        billing_address_1=order.user.billinginfo.street,
-        # billing_address_2=order.user.billinginfo.zipcode,
-        billing_city=order.user.billinginfo.city,
-        billing_postcode=order.user.billinginfo.zipcode,
-        billing_country_code=order.user.billinginfo.country,
-        # billing_country_area=order.user.billinginfo.zipcode,
+        billing_first_name=(billing_info.first_name or order.user.first_name),
+        billing_last_name=(billing_info.last_name or order.user.last_name),
+        billing_email=(billing_info.email or order.user.email),
+        billing_address_1=billing_info.street,
+        # billing_address_2=billing_info.zipcode,
+        billing_city=billing_info.city,
+        billing_postcode=billing_info.zipcode,
+        billing_country_code=billing_info.country,
+        # billing_country_area=billing_info.zipcode,
         customer_ip_address=get_client_ip(request) if request else "127.0.0.1",
         autorenewed_payment=autorenewed_payment,
     )
